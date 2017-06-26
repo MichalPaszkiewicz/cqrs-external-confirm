@@ -8,7 +8,7 @@ var RetryPolicy;
 })(RetryPolicy = exports.RetryPolicy || (exports.RetryPolicy = {}));
 var RequestQueueOptions = (function () {
     function RequestQueueOptions(retryPolicy, startRetryDelay, maxNumberOfRetries) {
-        if (maxNumberOfRetries === void 0) { maxNumberOfRetries = 0; }
+        if (maxNumberOfRetries === void 0) { maxNumberOfRetries = 5; }
         this.retryPolicy = retryPolicy;
         this.startRetryDelay = startRetryDelay;
         this.maxNumberOfRetries = maxNumberOfRetries;
@@ -20,6 +20,7 @@ var RequestQueue = (function () {
     function RequestQueue(options) {
         this._enquiries = [];
         this._onEnquiryCompleteHandlers = [];
+        this._onEnquiryFailingHandlers = [];
         this._onEnquiryFailedHandlers = [];
         this._sending = false;
         var self = this;
@@ -57,6 +58,9 @@ var RequestQueue = (function () {
         }
         self.resetRetry();
         self._messageBeingSent = self._enquiries[0];
+        if (self._messageBeingSent.endPoint == null) {
+            self.commandConfirmed(self._messageBeingSent);
+        }
         self.post();
     };
     RequestQueue.prototype.retry = function () {
@@ -80,26 +84,39 @@ var RequestQueue = (function () {
                 if (request.status >= 500) {
                     if (self._options.retryPolicy == RetryPolicy.NoRetry
                         || self._options.maxNumberOfRetries >= self._currentRetry) {
-                        self._onEnquiryFailedHandlers.forEach(function (oech) { return oech(enquiry, self._enquiries); });
+                        var stopOnFailed = self._onEnquiryFailingHandlers.forEach(function (oech) { return oech(enquiry, self); });
+                        if (!stopOnFailed) {
+                            self._onEnquiryFailedHandlers.forEach(function (oech) { return oech(enquiry, self._enquiries); });
+                        }
                         return;
                     }
                     self.retry();
                     return;
                 }
                 if (request.status < 200 || request.status > 299) {
-                    self._onEnquiryFailedHandlers.forEach(function (oefh) { return oefh(enquiry, self._enquiries); });
+                    var stopOnFailed = self._onEnquiryFailingHandlers.forEach(function (oech) { return oech(enquiry, self); });
+                    if (!stopOnFailed) {
+                        self._onEnquiryFailedHandlers.forEach(function (oefh) { return oefh(enquiry, self._enquiries); });
+                    }
                 }
                 else {
-                    self._onEnquiryCompleteHandlers.forEach(function (oech) { return oech(enquiry); });
-                    self._enquiries.shift();
-                    self.sendRequest();
+                    self.commandConfirmed(enquiry);
                 }
             }
         };
         request.send(JSON.stringify(data));
     };
+    RequestQueue.prototype.commandConfirmed = function (enquiry) {
+        var self = this;
+        self._onEnquiryCompleteHandlers.forEach(function (oech) { return oech(enquiry); });
+        self._enquiries.shift();
+        self.sendRequest();
+    };
     RequestQueue.prototype.onEnquiryComplete = function (callback) {
         this._onEnquiryCompleteHandlers.push(callback);
+    };
+    RequestQueue.prototype.onEnquiryFailing = function (stopOnEnquiryFailed) {
+        this._onEnquiryFailingHandlers.push(stopOnEnquiryFailed);
     };
     RequestQueue.prototype.onEnquiryFailed = function (callback) {
         this._onEnquiryFailedHandlers.push(callback);

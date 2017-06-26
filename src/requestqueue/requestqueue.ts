@@ -8,7 +8,7 @@ export enum RetryPolicy{
 }
 
 export class RequestQueueOptions{
-    constructor(public retryPolicy: RetryPolicy, public startRetryDelay?: number, public maxNumberOfRetries: number = 0){
+    constructor(public retryPolicy: RetryPolicy, public startRetryDelay?: number, public maxNumberOfRetries: number = 5){
 
     }
 }
@@ -17,6 +17,7 @@ export class RequestQueue{
 
     private _enquiries: CommandEnquiry[] = [];
     private _onEnquiryCompleteHandlers: ((enquiry: CommandEnquiry) => void)[] = [];
+    private _onEnquiryFailingHandlers: ((enquiry: CommandEnquiry, requestQueue: RequestQueue) => boolean)[] = [];
     private _onEnquiryFailedHandlers: ((enquiry: CommandEnquiry, unprocessedEnquiries: CommandEnquiry[]) => void)[] = [];
     private _sending: boolean = false;
     private _messageBeingSent: CommandEnquiry;
@@ -70,6 +71,11 @@ export class RequestQueue{
         self.resetRetry();
 
         self._messageBeingSent = self._enquiries[0];
+
+        if(self._messageBeingSent.endPoint == null){
+            self.commandConfirmed(self._messageBeingSent);
+        }
+
         self.post();
     }
 
@@ -95,27 +101,42 @@ export class RequestQueue{
                 if(request.status >= 500){
                     if(self._options.retryPolicy == RetryPolicy.NoRetry
                         || self._options.maxNumberOfRetries >= self._currentRetry){
-                        self._onEnquiryFailedHandlers.forEach((oech) => oech(enquiry, self._enquiries));
+                        var stopOnFailed = self._onEnquiryFailingHandlers.forEach((oech) => oech(enquiry, self));
+                        if(!stopOnFailed){
+                            self._onEnquiryFailedHandlers.forEach((oech) => oech(enquiry, self._enquiries));
+                        }
                         return;
                     }
                     self.retry()
                     return;
                 }
                 if(request.status < 200 || request.status > 299){
-                    self._onEnquiryFailedHandlers.forEach((oefh) => oefh(enquiry, self._enquiries));
+                    var stopOnFailed = self._onEnquiryFailingHandlers.forEach((oech) => oech(enquiry, self));  
+                    if(!stopOnFailed){                  
+                        self._onEnquiryFailedHandlers.forEach((oefh) => oefh(enquiry, self._enquiries));
+                    }
                 }
                 else{
-                    self._onEnquiryCompleteHandlers.forEach((oech) => oech(enquiry));
-                    self._enquiries.shift();
-                    self.sendRequest();
+                    self.commandConfirmed(enquiry);
                 }
             }
         }
         request.send(JSON.stringify(data));
     }
 
+    private commandConfirmed(enquiry: CommandEnquiry){
+        var self = this;
+        self._onEnquiryCompleteHandlers.forEach((oech) => oech(enquiry));
+        self._enquiries.shift();
+        self.sendRequest();
+    }
+
     onEnquiryComplete(callback: (enquiry: CommandEnquiry) => void){
         this._onEnquiryCompleteHandlers.push(callback);
+    }
+
+    onEnquiryFailing(stopOnEnquiryFailed: (enquiry: CommandEnquiry, requestQueue: RequestQueue) => boolean){
+        this._onEnquiryFailingHandlers.push(stopOnEnquiryFailed);
     }
 
     onEnquiryFailed(callback: (enquiry: CommandEnquiry, unprocessedEnquiries: CommandEnquiry[]) => void){

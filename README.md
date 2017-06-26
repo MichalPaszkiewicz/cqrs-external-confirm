@@ -73,6 +73,11 @@ If the server is down temporarily, cqrs-external-confirmer provides a retry poli
 If the failure is legitimate, the application will replay the state up to the point of a failure, allowing a smoother reconciliation of the events with the external system.
 
 ## updates ##
+### 0.0.6 ###
+Default number of retries is now 5
+
+`RequestQueue` has method `onEnquiryFailing(stopOnEnquiryFailed: (enquiry, requestQueue) => boolean)` which allows more detailed checks as to what is happening inside the request queue. The return value of the callback should be a boolean, which is to be `true` if the failure has been handled sufficiently so that the `onEnquiryFailed` events don't have to be triggered.
+
 ### 0.0.3 ###
 RequestQueueOptions specified - you can now set your retry options more specifically.
 ```javascript

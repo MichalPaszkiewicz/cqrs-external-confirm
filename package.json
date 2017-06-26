@@ -2,7 +2,7 @@
     "name": "cqrs-external-confirm",
     "author": "Michal Paszkiewicz",
     "license": "MIT",
-    "version": "0.0.3",
+    "version": "0.0.6",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "scripts": {
@@ -12,11 +12,11 @@
     },
     "repository": {
         "type": "git",
-        "url": "https://github.com/MichalPaszkiewicz/cqrs-server-confirm.git"
+        "url": "https://github.com/MichalPaszkiewicz/cqrs-external-confirm.git"
     },    
     "dependencies": {
         "@types/jest": "^19.2.2",
-        "cqrs-react-router": "2.0.10"
+        "cqrs-react-router": "2.0.12"
     },
     "devDependencies": {
         "jest": "*",

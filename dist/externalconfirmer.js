@@ -5,6 +5,19 @@ var commandenquiry_1 = require("./requestqueue/commandenquiry");
 var requestqueue_1 = require("./requestqueue/requestqueue");
 var commandhistory_1 = require("./commandhistory/commandhistory");
 var commandhistoryitem_1 = require("./commandhistory/commandhistoryitem");
+// todo: use these modes
+var ReconciliationModes;
+(function (ReconciliationModes) {
+    ReconciliationModes[ReconciliationModes["ReplayToFailure"] = 0] = "ReplayToFailure";
+    ReconciliationModes[ReconciliationModes["AllowRetry"] = 1] = "AllowRetry";
+})(ReconciliationModes = exports.ReconciliationModes || (exports.ReconciliationModes = {}));
+// todo: set options
+var ReconciliationOptions = (function () {
+    function ReconciliationOptions() {
+    }
+    return ReconciliationOptions;
+}());
+exports.ReconciliationOptions = ReconciliationOptions;
 var ExternalConfirmer = (function () {
     function ExternalConfirmer(retryOptions) {
         this._commandEndPointCollection = new commandendpointcollection_1.CommandEndPointCollection();

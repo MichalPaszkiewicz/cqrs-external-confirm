@@ -13,6 +13,7 @@ export declare class RequestQueueOptions {
 export declare class RequestQueue {
     private _enquiries;
     private _onEnquiryCompleteHandlers;
+    private _onEnquiryFailingHandlers;
     private _onEnquiryFailedHandlers;
     private _sending;
     private _messageBeingSent;
@@ -27,6 +28,8 @@ export declare class RequestQueue {
     private sendRequest();
     private retry();
     private post();
+    private commandConfirmed(enquiry);
     onEnquiryComplete(callback: (enquiry: CommandEnquiry) => void): void;
+    onEnquiryFailing(stopOnEnquiryFailed: (enquiry: CommandEnquiry, requestQueue: RequestQueue) => boolean): void;
     onEnquiryFailed(callback: (enquiry: CommandEnquiry, unprocessedEnquiries: CommandEnquiry[]) => void): void;
 }

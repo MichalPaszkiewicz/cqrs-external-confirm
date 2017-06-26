@@ -3,6 +3,12 @@ import { CommandEndPoint } from "./commandendpoints/commandendpoint";
 import { CommandEndPointCollection } from "./commandendpoints/commandendpointcollection";
 import { CommandEnquiry } from "./requestqueue/commandenquiry";
 import { RequestQueueOptions } from "./requestqueue/requestqueue";
+export declare enum ReconciliationModes {
+    ReplayToFailure = 0,
+    AllowRetry = 1,
+}
+export declare class ReconciliationOptions {
+}
 export declare class ExternalConfirmer {
     private _commandEndPointCollection;
     private _requestQueue;

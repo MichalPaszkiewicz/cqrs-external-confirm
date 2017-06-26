@@ -6,6 +6,17 @@ import {RequestQueue, RequestQueueOptions, RetryPolicy} from "./requestqueue/req
 import {CommandHistory} from "./commandhistory/commandhistory";
 import {CommandHistoryItem} from "./commandhistory/commandhistoryitem";
 
+// todo: use these modes
+export enum ReconciliationModes{
+    ReplayToFailure,
+    AllowRetry
+}
+
+// todo: set options
+export class ReconciliationOptions{
+
+}
+
 export class ExternalConfirmer{
     
     private _commandEndPointCollection: CommandEndPointCollection = new CommandEndPointCollection();
@@ -63,5 +74,4 @@ export class ExternalConfirmer{
         var self = this;
         self._requestQueue.onEnquiryFailed(callback);
     }
-
 }
