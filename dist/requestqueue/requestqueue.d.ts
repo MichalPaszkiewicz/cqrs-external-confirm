@@ -27,6 +27,8 @@ export declare class RequestQueue {
     stopSending(): void;
     private sendRequest();
     private retry();
+    private failEnquiry(enquiry);
+    private retriesShouldStop();
     private post();
     private commandConfirmed(enquiry);
     onEnquiryComplete(callback: (enquiry: CommandEnquiry) => void): void;

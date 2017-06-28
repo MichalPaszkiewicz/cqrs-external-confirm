@@ -88,6 +88,23 @@ export class RequestQueue{
         setTimeout(() => self.post(), self._currentDelay);
     }
 
+    private failEnquiry(enquiry){
+        var self = this;
+        self._sending = false;
+        var stopOnFailed = self._onEnquiryFailingHandlers.some((oech) => oech(enquiry, self));
+        if(!stopOnFailed){
+            var redundantEnquiries = self._enquiries;
+            self._onEnquiryFailedHandlers.forEach((oech) => oech(enquiry, redundantEnquiries));
+            self._enquiries = [];
+        }        
+    }
+
+    private retriesShouldStop(){
+        var self = this;
+        return self._options.retryPolicy == RetryPolicy.NoRetry 
+            || self._currentRetry > self._options.maxNumberOfRetries;
+    }
+
     private post(){
         var self = this;
         var request = new XMLHttpRequest();
@@ -98,23 +115,17 @@ export class RequestQueue{
         request.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
         request.onreadystatechange = () => {
             if(request.readyState == 4){
-                if(request.status >= 500){
-                    if(self._options.retryPolicy == RetryPolicy.NoRetry
-                        || self._options.maxNumberOfRetries >= self._currentRetry){
-                        var stopOnFailed = self._onEnquiryFailingHandlers.forEach((oech) => oech(enquiry, self));
-                        if(!stopOnFailed){
-                            self._onEnquiryFailedHandlers.forEach((oech) => oech(enquiry, self._enquiries));
-                        }
+                if(request.status >= 500 || request.status == 0){
+                    if(self.retriesShouldStop()){
+                        self.failEnquiry(enquiry);
                         return;
                     }
                     self.retry()
                     return;
                 }
-                if(request.status < 200 || request.status > 299){
-                    var stopOnFailed = self._onEnquiryFailingHandlers.forEach((oech) => oech(enquiry, self));  
-                    if(!stopOnFailed){                  
-                        self._onEnquiryFailedHandlers.forEach((oefh) => oefh(enquiry, self._enquiries));
-                    }
+                if(request.status < 200 || request.status > 299){              
+                    self.failEnquiry(enquiry);
+                    return;
                 }
                 else{
                     self.commandConfirmed(enquiry);

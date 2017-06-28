@@ -71,6 +71,21 @@ var RequestQueue = (function () {
         }
         setTimeout(function () { return self.post(); }, self._currentDelay);
     };
+    RequestQueue.prototype.failEnquiry = function (enquiry) {
+        var self = this;
+        self._sending = false;
+        var stopOnFailed = self._onEnquiryFailingHandlers.some(function (oech) { return oech(enquiry, self); });
+        if (!stopOnFailed) {
+            var redundantEnquiries = self._enquiries;
+            self._onEnquiryFailedHandlers.forEach(function (oech) { return oech(enquiry, redundantEnquiries); });
+            self._enquiries = [];
+        }
+    };
+    RequestQueue.prototype.retriesShouldStop = function () {
+        var self = this;
+        return self._options.retryPolicy == RetryPolicy.NoRetry
+            || self._currentRetry > self._options.maxNumberOfRetries;
+    };
     RequestQueue.prototype.post = function () {
         var self = this;
         var request = new XMLHttpRequest();
@@ -81,23 +96,17 @@ var RequestQueue = (function () {
         request.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
         request.onreadystatechange = function () {
             if (request.readyState == 4) {
-                if (request.status >= 500) {
-                    if (self._options.retryPolicy == RetryPolicy.NoRetry
-                        || self._options.maxNumberOfRetries >= self._currentRetry) {
-                        var stopOnFailed = self._onEnquiryFailingHandlers.forEach(function (oech) { return oech(enquiry, self); });
-                        if (!stopOnFailed) {
-                            self._onEnquiryFailedHandlers.forEach(function (oech) { return oech(enquiry, self._enquiries); });
-                        }
+                if (request.status >= 500 || request.status == 0) {
+                    if (self.retriesShouldStop()) {
+                        self.failEnquiry(enquiry);
                         return;
                     }
                     self.retry();
                     return;
                 }
                 if (request.status < 200 || request.status > 299) {
-                    var stopOnFailed = self._onEnquiryFailingHandlers.forEach(function (oech) { return oech(enquiry, self); });
-                    if (!stopOnFailed) {
-                        self._onEnquiryFailedHandlers.forEach(function (oefh) { return oefh(enquiry, self._enquiries); });
-                    }
+                    self.failEnquiry(enquiry);
+                    return;
                 }
                 else {
                     self.commandConfirmed(enquiry);
