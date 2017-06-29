@@ -27,11 +27,11 @@ export declare class RequestQueue {
     stopSending(): void;
     private sendRequest();
     private retry();
-    private failEnquiry(enquiry);
+    private failEnquiry(enquiry, errorMessage);
     private retriesShouldStop();
     private post();
     private commandConfirmed(enquiry);
     onEnquiryComplete(callback: (enquiry: CommandEnquiry) => void): void;
     onEnquiryFailing(stopOnEnquiryFailed: (enquiry: CommandEnquiry, requestQueue: RequestQueue) => boolean): void;
-    onEnquiryFailed(callback: (enquiry: CommandEnquiry, unprocessedEnquiries: CommandEnquiry[]) => void): void;
+    onEnquiryFailed(callback: (enquiry: CommandEnquiry, unprocessedEnquiries: CommandEnquiry[], errorMessage: string) => void): void;
 }

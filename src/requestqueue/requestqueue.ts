@@ -18,7 +18,7 @@ export class RequestQueue{
     private _enquiries: CommandEnquiry[] = [];
     private _onEnquiryCompleteHandlers: ((enquiry: CommandEnquiry) => void)[] = [];
     private _onEnquiryFailingHandlers: ((enquiry: CommandEnquiry, requestQueue: RequestQueue) => boolean)[] = [];
-    private _onEnquiryFailedHandlers: ((enquiry: CommandEnquiry, unprocessedEnquiries: CommandEnquiry[]) => void)[] = [];
+    private _onEnquiryFailedHandlers: ((enquiry: CommandEnquiry, unprocessedEnquiries: CommandEnquiry[], errorMessage: string) => void)[] = [];
     private _sending: boolean = false;
     private _messageBeingSent: CommandEnquiry;
 
@@ -74,6 +74,7 @@ export class RequestQueue{
 
         if(self._messageBeingSent.endPoint == null){
             self.commandConfirmed(self._messageBeingSent);
+            return;
         }
 
         self.post();
@@ -88,21 +89,21 @@ export class RequestQueue{
         setTimeout(() => self.post(), self._currentDelay);
     }
 
-    private failEnquiry(enquiry){
+    private failEnquiry(enquiry, errorMessage){
         var self = this;
         self._sending = false;
         var stopOnFailed = self._onEnquiryFailingHandlers.some((oech) => oech(enquiry, self));
         if(!stopOnFailed){
             var redundantEnquiries = self._enquiries;
-            self._onEnquiryFailedHandlers.forEach((oech) => oech(enquiry, redundantEnquiries));
             self._enquiries = [];
+            self._onEnquiryFailedHandlers.forEach((oech) => oech(enquiry, redundantEnquiries, errorMessage)); 
         }        
     }
 
     private retriesShouldStop(){
         var self = this;
         return self._options.retryPolicy == RetryPolicy.NoRetry 
-            || self._currentRetry > self._options.maxNumberOfRetries;
+            || self._currentRetry >= self._options.maxNumberOfRetries;
     }
 
     private post(){
@@ -117,14 +118,14 @@ export class RequestQueue{
             if(request.readyState == 4){
                 if(request.status >= 500 || request.status == 0){
                     if(self.retriesShouldStop()){
-                        self.failEnquiry(enquiry);
+                        self.failEnquiry(enquiry, request.statusText);
                         return;
                     }
                     self.retry()
                     return;
                 }
                 if(request.status < 200 || request.status > 299){              
-                    self.failEnquiry(enquiry);
+                    self.failEnquiry(enquiry, request.statusText);
                     return;
                 }
                 else{
@@ -150,7 +151,7 @@ export class RequestQueue{
         this._onEnquiryFailingHandlers.push(stopOnEnquiryFailed);
     }
 
-    onEnquiryFailed(callback: (enquiry: CommandEnquiry, unprocessedEnquiries: CommandEnquiry[]) => void){
+    onEnquiryFailed(callback: (enquiry: CommandEnquiry, unprocessedEnquiries: CommandEnquiry[], errorMessage: string) => void){
         this._onEnquiryFailedHandlers.push(callback);
     }
 }

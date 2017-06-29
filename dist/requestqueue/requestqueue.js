@@ -60,6 +60,7 @@ var RequestQueue = (function () {
         self._messageBeingSent = self._enquiries[0];
         if (self._messageBeingSent.endPoint == null) {
             self.commandConfirmed(self._messageBeingSent);
+            return;
         }
         self.post();
     };
@@ -71,20 +72,20 @@ var RequestQueue = (function () {
         }
         setTimeout(function () { return self.post(); }, self._currentDelay);
     };
-    RequestQueue.prototype.failEnquiry = function (enquiry) {
+    RequestQueue.prototype.failEnquiry = function (enquiry, errorMessage) {
         var self = this;
         self._sending = false;
         var stopOnFailed = self._onEnquiryFailingHandlers.some(function (oech) { return oech(enquiry, self); });
         if (!stopOnFailed) {
             var redundantEnquiries = self._enquiries;
-            self._onEnquiryFailedHandlers.forEach(function (oech) { return oech(enquiry, redundantEnquiries); });
             self._enquiries = [];
+            self._onEnquiryFailedHandlers.forEach(function (oech) { return oech(enquiry, redundantEnquiries, errorMessage); });
         }
     };
     RequestQueue.prototype.retriesShouldStop = function () {
         var self = this;
         return self._options.retryPolicy == RetryPolicy.NoRetry
-            || self._currentRetry > self._options.maxNumberOfRetries;
+            || self._currentRetry >= self._options.maxNumberOfRetries;
     };
     RequestQueue.prototype.post = function () {
         var self = this;
@@ -98,14 +99,14 @@ var RequestQueue = (function () {
             if (request.readyState == 4) {
                 if (request.status >= 500 || request.status == 0) {
                     if (self.retriesShouldStop()) {
-                        self.failEnquiry(enquiry);
+                        self.failEnquiry(enquiry, request.statusText);
                         return;
                     }
                     self.retry();
                     return;
                 }
                 if (request.status < 200 || request.status > 299) {
-                    self.failEnquiry(enquiry);
+                    self.failEnquiry(enquiry, request.statusText);
                     return;
                 }
                 else {

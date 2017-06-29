@@ -23,5 +23,5 @@ export declare class ExternalConfirmer {
     }[]): void;
     registerCommandEndPointCollection(endPointCollection: CommandEndPointCollection): void;
     confirm(command: IAmACommand): void;
-    onConfirmationFailed(callback: (enquiry: CommandEnquiry, unprocessedEnquiries: CommandEnquiry[]) => void): void;
+    onConfirmationFailed(callback: (enquiry: CommandEnquiry, unprocessedEnquiries: CommandEnquiry[], errorMessage: string) => void): void;
 }

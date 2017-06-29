@@ -70,7 +70,7 @@ export class ExternalConfirmer{
             self._commandEndPointCollection.getEndPointForCommand(command.name)));
     }
 
-    onConfirmationFailed(callback: (enquiry: CommandEnquiry, unprocessedEnquiries: CommandEnquiry[]) => void){
+    onConfirmationFailed(callback: (enquiry: CommandEnquiry, unprocessedEnquiries: CommandEnquiry[], errorMessage: string) => void){
         var self = this;
         self._requestQueue.onEnquiryFailed(callback);
     }
