@@ -2,7 +2,7 @@
     "name": "cqrs-external-confirm",
     "author": "Michal Paszkiewicz",
     "license": "MIT",
-    "version": "0.0.10",
+    "version": "0.0.13",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "scripts": {
@@ -16,7 +16,7 @@
     },    
     "dependencies": {
         "@types/jest": "^19.2.2",
-        "cqrs-react-router": "2.0.14"
+        "cqrs-react-router": "2.0.15"
     },
     "devDependencies": {
         "jest": "*",

@@ -93,20 +93,20 @@ var RequestQueue = (function () {
         var enquiry = self._messageBeingSent;
         var url = enquiry.endPoint;
         var data = enquiry.item.command;
-        request.open("POST", url);
+        request.open("POST", url, true);
         request.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
         request.onreadystatechange = function () {
             if (request.readyState == 4) {
                 if (request.status >= 500 || request.status == 0) {
                     if (self.retriesShouldStop()) {
-                        self.failEnquiry(enquiry, request.statusText);
+                        self.failEnquiry(enquiry, request.response || request.responseText || request.statusText);
                         return;
                     }
                     self.retry();
                     return;
                 }
                 if (request.status < 200 || request.status > 299) {
-                    self.failEnquiry(enquiry, request.statusText);
+                    self.failEnquiry(enquiry, request.response || request.responseText || request.statusText);
                     return;
                 }
                 else {
