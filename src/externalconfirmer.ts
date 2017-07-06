@@ -74,4 +74,8 @@ export class ExternalConfirmer{
         var self = this;
         self._requestQueue.onEnquiryFailed(callback);
     }
+
+    transformRequest(callback: (request: XMLHttpRequest) => void){
+        this._requestQueue.transformRequest(callback);
+    }
 }

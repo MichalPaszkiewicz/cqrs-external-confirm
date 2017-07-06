@@ -24,4 +24,5 @@ export declare class ExternalConfirmer {
     registerCommandEndPointCollection(endPointCollection: CommandEndPointCollection): void;
     confirm(command: IAmACommand): void;
     onConfirmationFailed(callback: (enquiry: CommandEnquiry, unprocessedEnquiries: CommandEnquiry[], errorMessage: string) => void): void;
+    transformRequest(callback: (request: XMLHttpRequest) => void): void;
 }

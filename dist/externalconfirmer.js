@@ -57,6 +57,9 @@ var ExternalConfirmer = (function () {
         var self = this;
         self._requestQueue.onEnquiryFailed(callback);
     };
+    ExternalConfirmer.prototype.transformRequest = function (callback) {
+        this._requestQueue.transformRequest(callback);
+    };
     return ExternalConfirmer;
 }());
 exports.ExternalConfirmer = ExternalConfirmer;

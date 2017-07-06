@@ -21,6 +21,7 @@ export class RequestQueue{
     private _onEnquiryFailedHandlers: ((enquiry: CommandEnquiry, unprocessedEnquiries: CommandEnquiry[], errorMessage: string) => void)[] = [];
     private _sending: boolean = false;
     private _messageBeingSent: CommandEnquiry;
+    private _requestTransform: (request: XMLHttpRequest) => void = null;
 
     private _options: RequestQueueOptions;
 
@@ -80,6 +81,10 @@ export class RequestQueue{
         self.post();
     }
 
+    transformRequest(callback: (request: XMLHttpRequest) => void){
+        this._requestTransform = callback;
+    }
+
     private retry(){
         var self = this;
         self._currentRetry++;
@@ -114,6 +119,9 @@ export class RequestQueue{
         var data = enquiry.item.command;
         request.open("POST", url, true);
         request.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+        if(self._requestTransform){
+            self._requestTransform(request);
+        }
         request.onreadystatechange = () => {
             if(request.readyState == 4){
                 if(request.status >= 500 || request.status == 0){

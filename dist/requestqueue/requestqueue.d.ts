@@ -17,6 +17,7 @@ export declare class RequestQueue {
     private _onEnquiryFailedHandlers;
     private _sending;
     private _messageBeingSent;
+    private _requestTransform;
     private _options;
     private _currentDelay;
     private _currentRetry;
@@ -26,6 +27,7 @@ export declare class RequestQueue {
     startSending(): void;
     stopSending(): void;
     private sendRequest();
+    transformRequest(callback: (request: XMLHttpRequest) => void): void;
     private retry();
     private failEnquiry(enquiry, errorMessage);
     private retriesShouldStop();

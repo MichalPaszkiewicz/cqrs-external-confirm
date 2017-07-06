@@ -23,6 +23,7 @@ var RequestQueue = (function () {
         this._onEnquiryFailingHandlers = [];
         this._onEnquiryFailedHandlers = [];
         this._sending = false;
+        this._requestTransform = null;
         var self = this;
         if (options == null) {
             self._options = new RequestQueueOptions(RetryPolicy.RetryExponential, 200, 5);
@@ -64,6 +65,9 @@ var RequestQueue = (function () {
         }
         self.post();
     };
+    RequestQueue.prototype.transformRequest = function (callback) {
+        this._requestTransform = callback;
+    };
     RequestQueue.prototype.retry = function () {
         var self = this;
         self._currentRetry++;
@@ -95,6 +99,9 @@ var RequestQueue = (function () {
         var data = enquiry.item.command;
         request.open("POST", url, true);
         request.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+        if (self._requestTransform) {
+            self._requestTransform(request);
+        }
         request.onreadystatechange = function () {
             if (request.readyState == 4) {
                 if (request.status >= 500 || request.status == 0) {

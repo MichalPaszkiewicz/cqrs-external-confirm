@@ -2,7 +2,7 @@
     "name": "cqrs-external-confirm",
     "author": "Michal Paszkiewicz",
     "license": "MIT",
-    "version": "0.0.13",
+    "version": "0.0.14",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "scripts": {
