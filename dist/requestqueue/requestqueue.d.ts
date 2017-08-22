@@ -1,4 +1,5 @@
 import { CommandEnquiry } from "./commandenquiry";
+import { IAmACommand } from "cqrs-react-router";
 export declare enum RetryPolicy {
     NoRetry = 0,
     Retry = 1,
@@ -18,6 +19,7 @@ export declare class RequestQueue {
     private _sending;
     private _messageBeingSent;
     private _requestTransform;
+    private _commandTransform;
     private _options;
     private _currentDelay;
     private _currentRetry;
@@ -28,6 +30,7 @@ export declare class RequestQueue {
     stopSending(): void;
     private sendRequest();
     transformRequest(callback: (request: XMLHttpRequest) => void): void;
+    transformCommand(callback: (command: IAmACommand) => void): void;
     private retry();
     private failEnquiry(enquiry, errorMessage);
     private retriesShouldStop();

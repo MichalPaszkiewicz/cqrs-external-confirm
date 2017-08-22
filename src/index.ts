@@ -5,4 +5,5 @@ export {CommandHistory} from "./commandhistory/commandhistory";
 export {CommandHistoryItem} from "./commandhistory/commandhistoryitem";
 export {CommandEndPoint} from "./commandendpoints/commandendpoint";
 export {CommandEndPointCollection} from "./commandendpoints/commandendpointcollection";
+export {CommandIgnore} from "./commandendpoints/commandignore";
 

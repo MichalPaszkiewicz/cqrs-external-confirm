@@ -1,5 +1,6 @@
 import {CommandHistory} from "../commandhistory/commandhistory";
 import {CommandEnquiry} from "./commandenquiry";
+import {IAmACommand} from "cqrs-react-router";
 
 export enum RetryPolicy{
     NoRetry,
@@ -22,6 +23,7 @@ export class RequestQueue{
     private _sending: boolean = false;
     private _messageBeingSent: CommandEnquiry;
     private _requestTransform: (request: XMLHttpRequest) => void = null;
+    private _commandTransform: (command: IAmACommand) => void = null;
 
     private _options: RequestQueueOptions;
 
@@ -85,6 +87,10 @@ export class RequestQueue{
         this._requestTransform = callback;
     }
 
+    transformCommand(callback: (command: IAmACommand) => void){
+        this._commandTransform = callback;
+    }
+
     private retry(){
         var self = this;
         self._currentRetry++;
@@ -121,6 +127,9 @@ export class RequestQueue{
         request.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
         if(self._requestTransform){
             self._requestTransform(request);
+        }
+        if(self._commandTransform){
+            self._commandTransform(enquiry.item.command);
         }
         request.onreadystatechange = () => {
             if(request.readyState == 4){

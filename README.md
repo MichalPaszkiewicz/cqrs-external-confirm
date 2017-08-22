@@ -73,6 +73,26 @@ If the server is down temporarily, cqrs-external-confirmer provides a retry poli
 If the failure is legitimate, the application will replay the state up to the point of a failure, allowing a smoother reconciliation of the events with the external system.
 
 ## updates ##
+
+### 0.0.22 ###
+You can now select a wildcard endpoint and select commands to ignore
+````javascript
+externalConfirmer.registerCommandEndPoint("*", "http://someurl.com");
+externalConfirmer.registerCommandToIgnore("SomeCommand");
+````
+
+### 0.0.15 ###
+````javascript
+externalConfirmer.commandTransform(callback: (command: IAmACommand) => void)
+````
+Now allows you to transform commands just before they are sent!
+
+### 0.0.14 ###
+````javascript
+externalConfirmer.transformRequest(callback: (request: XMLHttpRequest) => void)
+````
+Now allows you to set custom headers/fields on confirmation post messages.
+
 ### 0.0.6 ###
 Default number of retries is now 5
 

@@ -15,4 +15,6 @@ var commandendpoint_1 = require("./commandendpoints/commandendpoint");
 exports.CommandEndPoint = commandendpoint_1.CommandEndPoint;
 var commandendpointcollection_1 = require("./commandendpoints/commandendpointcollection");
 exports.CommandEndPointCollection = commandendpointcollection_1.CommandEndPointCollection;
+var commandignore_1 = require("./commandendpoints/commandignore");
+exports.CommandIgnore = commandignore_1.CommandIgnore;
 //# sourceMappingURL=index.js.map

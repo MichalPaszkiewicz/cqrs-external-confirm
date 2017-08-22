@@ -5,6 +5,8 @@ import {CommandEnquiry} from "./requestqueue/commandenquiry";
 import {RequestQueue, RequestQueueOptions, RetryPolicy} from "./requestqueue/requestqueue";
 import {CommandHistory} from "./commandhistory/commandhistory";
 import {CommandHistoryItem} from "./commandhistory/commandhistoryitem";
+import {CommandIgnore} from "./commandendpoints/commandignore";
+import {CommandIgnoreCollection} from "./commandendpoints/commandignorecollection";
 
 // todo: use these modes
 export enum ReconciliationModes{
@@ -19,6 +21,7 @@ export class ReconciliationOptions{
 
 export class ExternalConfirmer{
     
+    private _commandIgnoreCollection: CommandIgnoreCollection = new CommandIgnoreCollection();
     private _commandEndPointCollection: CommandEndPointCollection = new CommandEndPointCollection();
     private _requestQueue: RequestQueue;
     private _commandHistory: CommandHistory = new CommandHistory();
@@ -62,8 +65,22 @@ export class ExternalConfirmer{
         this._commandEndPointCollection.concat(endPointCollection);
     }
 
+    registerCommandToIgnore(commandName: string){
+        this._commandIgnoreCollection.add(commandName);
+    }
+
+    registerCommandsToIgnore(ignoreList: CommandIgnore[] | {commandName: string}[]){
+        var self = this;
+        ignoreList.forEach((ci) => {
+            self._commandIgnoreCollection.add(ci.commandName);
+        });
+    }
+
     confirm(command: IAmACommand){
         var self = this;
+        if(self._commandIgnoreCollection.shouldIgnoreCommand(command.name)){
+            return;
+        }
         self._requestQueue.push(
             new CommandEnquiry(
                 new CommandHistoryItem(command), 
@@ -77,5 +94,9 @@ export class ExternalConfirmer{
 
     transformRequest(callback: (request: XMLHttpRequest) => void){
         this._requestQueue.transformRequest(callback);
+    }
+
+    transformCommand(callback: (c: IAmACommand) => void){
+        this._requestQueue.transformCommand(callback);
     }
 }

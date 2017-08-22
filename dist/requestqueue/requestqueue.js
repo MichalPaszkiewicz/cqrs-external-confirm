@@ -24,6 +24,7 @@ var RequestQueue = (function () {
         this._onEnquiryFailedHandlers = [];
         this._sending = false;
         this._requestTransform = null;
+        this._commandTransform = null;
         var self = this;
         if (options == null) {
             self._options = new RequestQueueOptions(RetryPolicy.RetryExponential, 200, 5);
@@ -68,6 +69,9 @@ var RequestQueue = (function () {
     RequestQueue.prototype.transformRequest = function (callback) {
         this._requestTransform = callback;
     };
+    RequestQueue.prototype.transformCommand = function (callback) {
+        this._commandTransform = callback;
+    };
     RequestQueue.prototype.retry = function () {
         var self = this;
         self._currentRetry++;
@@ -101,6 +105,9 @@ var RequestQueue = (function () {
         request.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
         if (self._requestTransform) {
             self._requestTransform(request);
+        }
+        if (self._commandTransform) {
+            self._commandTransform(enquiry.item.command);
         }
         request.onreadystatechange = function () {
             if (request.readyState == 4) {

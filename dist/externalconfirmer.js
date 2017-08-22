@@ -5,6 +5,7 @@ var commandenquiry_1 = require("./requestqueue/commandenquiry");
 var requestqueue_1 = require("./requestqueue/requestqueue");
 var commandhistory_1 = require("./commandhistory/commandhistory");
 var commandhistoryitem_1 = require("./commandhistory/commandhistoryitem");
+var commandignorecollection_1 = require("./commandendpoints/commandignorecollection");
 // todo: use these modes
 var ReconciliationModes;
 (function (ReconciliationModes) {
@@ -20,6 +21,7 @@ var ReconciliationOptions = (function () {
 exports.ReconciliationOptions = ReconciliationOptions;
 var ExternalConfirmer = (function () {
     function ExternalConfirmer(retryOptions) {
+        this._commandIgnoreCollection = new commandignorecollection_1.CommandIgnoreCollection();
         this._commandEndPointCollection = new commandendpointcollection_1.CommandEndPointCollection();
         this._commandHistory = new commandhistory_1.CommandHistory();
         var self = this;
@@ -49,8 +51,20 @@ var ExternalConfirmer = (function () {
     ExternalConfirmer.prototype.registerCommandEndPointCollection = function (endPointCollection) {
         this._commandEndPointCollection.concat(endPointCollection);
     };
+    ExternalConfirmer.prototype.registerCommandToIgnore = function (commandName) {
+        this._commandIgnoreCollection.add(commandName);
+    };
+    ExternalConfirmer.prototype.registerCommandsToIgnore = function (ignoreList) {
+        var self = this;
+        ignoreList.forEach(function (ci) {
+            self._commandIgnoreCollection.add(ci.commandName);
+        });
+    };
     ExternalConfirmer.prototype.confirm = function (command) {
         var self = this;
+        if (self._commandIgnoreCollection.shouldIgnoreCommand(command.name)) {
+            return;
+        }
         self._requestQueue.push(new commandenquiry_1.CommandEnquiry(new commandhistoryitem_1.CommandHistoryItem(command), self._commandEndPointCollection.getEndPointForCommand(command.name)));
     };
     ExternalConfirmer.prototype.onConfirmationFailed = function (callback) {
@@ -59,6 +73,9 @@ var ExternalConfirmer = (function () {
     };
     ExternalConfirmer.prototype.transformRequest = function (callback) {
         this._requestQueue.transformRequest(callback);
+    };
+    ExternalConfirmer.prototype.transformCommand = function (callback) {
+        this._requestQueue.transformCommand(callback);
     };
     return ExternalConfirmer;
 }());

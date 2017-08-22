@@ -14,7 +14,7 @@ export class CommandEndPointCollection{
 
     getEndPointForCommand(commandName: string){
         for(var i = 0; i < this._endpoints.length; i++){
-            if(this._endpoints[i].commandName == commandName){
+            if(this._endpoints[i].commandName == commandName || this._endpoints[i].commandName == "*"){
                 return this._endpoints[i].endPoint;
             }
         }
